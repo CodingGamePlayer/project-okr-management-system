@@ -1,15 +1,26 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
+import { join } from 'path';
 
-dotenv.config();
+// 환경 변수 파일 경로 설정
+const envPath = join(process.cwd(), process.env.NODE_ENV === 'production' ? '.env.production' : '.env');
 
-// 개발 환경이면 .env.local 파일을 사용
-// 프로덕션 환경이면 .env.production 파일을 사용
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.local';
-
-dotenv.config({ path: envFile });
+// 환경 변수 로드
+dotenv.config({ path: envPath });
 
 export const env = {
-  POSTGRES_USER: process.env.POSTGRES_USER,
-  POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
-  POSTGRES_DB: process.env.POSTGRES_DB,
+  // Database
+  database: {
+    type: 'postgres' as const,
+    host: process.env.POSTGRES_HOST || 'localhost',
+    port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
+    username: process.env.POSTGRES_USER || 'admin',
+    password: process.env.POSTGRES_PASSWORD || 'admin1234',
+    database: process.env.POSTGRES_DB || 'okr_db',
+    synchronize: process.env.NODE_ENV !== 'production', // 개발 환경에서만 true
+    logging: process.env.NODE_ENV !== 'production', // 개발 환경에서만 true
+  },
+
+  // Node
+  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env.PORT || '3000', 10),
 };
