@@ -10,5 +10,11 @@ import { env } from './common/env/env';
       entities: Entities,
     }),
   ],
+  imports: [
+    TypeOrmModule.forRoot({
+      ...env.database,
+      entities: Entities,
+    }),
+  ],
 })
 export class AppModule {}
