@@ -4,6 +4,7 @@ erDiagram
         int id
         string username
         string email
+        string password
         boolean is_verified
         int role_id
     }
@@ -68,6 +69,8 @@ erDiagram
     Roles ||--o{ UserRoles : "has"
     Users ||--o{ ProjectAssignments : "assigned to"
     Projects ||--o{ ProjectAssignments : "has"
+    Projects ||--o{ Projects : "has children"
+    Projects ||--o{ OKRs : "has"
     Users ||--o{ OKRAssignments : "assigned to"
     OKRs ||--o{ OKRAssignments : "has"
     OKRs ||--o{ OKRKeyResults : "has"
