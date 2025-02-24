@@ -12,16 +12,17 @@ async function bootstrap() {
     .setTitle('Domain API')
     .setDescription('도메인 관련 API 문서')
     .setVersion('1.0')
-    .addTag('User')
-    .addTag('Role')
-    .addTag('Project')
     .addBearerAuth()
     .build();
 
   const domainDocument = SwaggerModule.createDocument(app, domainConfig, {
     include: [...DomainModules],
   });
-  SwaggerModule.setup('api/domain', app, domainDocument);
+  SwaggerModule.setup('api/domain', app, domainDocument, {
+    swaggerOptions: {
+      docExpansion: 'none',
+    },
+  });
 
   // Application API Documentation
   const applicationConfig = new DocumentBuilder()
@@ -35,8 +36,18 @@ async function bootstrap() {
   const applicationDocument = SwaggerModule.createDocument(app, applicationConfig, {
     include: [ApplicationModule],
   });
-  SwaggerModule.setup('api/application', app, applicationDocument);
+  SwaggerModule.setup('api/application', app, applicationDocument, {
+    swaggerOptions: {
+      docExpansion: 'none',
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+bootstrap()
+  .then(() => {
+    console.log(`Server is running on port ${process.env.PORT ?? 3000}`);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
