@@ -5,6 +5,7 @@ import { Project, User, ProjectAssignment } from 'src/common/entities';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectAssignmentDto } from './dto/create-project-assignment.dto';
+import { ProjectMemberRole } from './dto/update-project-member-role.dto';
 
 @Injectable()
 export class ProjectService {
@@ -101,6 +102,11 @@ export class ProjectService {
 
   async assignMember(projectId: number, assignmentDto: CreateProjectAssignmentDto): Promise<ProjectAssignment> {
     const project = await this.findOne(projectId);
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
     const user = await this.userRepository.findOne({
       where: { id: assignmentDto.user_id },
     });
@@ -152,7 +158,7 @@ export class ProjectService {
     });
   }
 
-  async updateMemberRole(projectId: number, userId: number, role: string): Promise<ProjectAssignment> {
+  async updateMemberRole(projectId: number, userId: number, role: ProjectMemberRole): Promise<ProjectAssignment> {
     const assignment = await this.projectAssignmentRepository.findOne({
       where: {
         project_id: projectId,

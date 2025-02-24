@@ -3,6 +3,7 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectAssignmentDto } from './dto/create-project-assignment.dto';
+import { UpdateProjectMemberRoleDto } from './dto/update-project-member-role.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Project')
@@ -89,8 +90,13 @@ export class ProjectController {
   @ApiParam({ name: 'projectId', description: '프로젝트 ID' })
   @ApiParam({ name: 'userId', description: '사용자 ID' })
   @ApiResponse({ status: 200, description: '역할 수정 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 역할 값' })
   @ApiResponse({ status: 404, description: '할당 정보를 찾을 수 없음' })
-  updateMemberRole(@Param('projectId') projectId: string, @Param('userId') userId: string, @Body('role') role: string) {
-    return this.projectService.updateMemberRole(+projectId, +userId, role);
+  updateMemberRole(
+    @Param('projectId') projectId: string,
+    @Param('userId') userId: string,
+    @Body() updateRoleDto: UpdateProjectMemberRoleDto,
+  ) {
+    return this.projectService.updateMemberRole(+projectId, +userId, updateRoleDto.role);
   }
 }
