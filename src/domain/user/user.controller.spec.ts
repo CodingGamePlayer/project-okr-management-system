@@ -1,7 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
-import { Role } from 'src/common/entities';
+import { Role, User } from 'src/common/entities';
 import { DataSource } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -112,6 +112,25 @@ describe('UserController', () => {
       expect(result.username).toBe(updateUserDto.username);
     });
 
+    it('should hash password when updating password', async () => {
+      const createUserDto: CreateUserDto = {
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password123',
+      };
+
+      const createdUser = await controller.create(createUserDto);
+      const updateUserDto: UpdateUserDto = {
+        password: 'newpassword123',
+      };
+
+      const result = await controller.update(String(createdUser.id), updateUserDto);
+
+      expect(result).toBeDefined();
+      expect(result.password).not.toBe(updateUserDto.password);
+      expect(result.password).toMatch(/^\$2b\$\d+\$/); // bcrypt 해시 패턴 확인
+    });
+
     it('should throw NotFoundException when user not found', async () => {
       const updateUserDto: UpdateUserDto = {
         username: 'newusername',
@@ -142,15 +161,51 @@ describe('UserController', () => {
 
   describe('verifyEmail', () => {
     it('should verify user email successfully', async () => {
-      const createUserDto: CreateUserDto = {
+      // 미인증 상태의 사용자 생성
+      const userRepository = dataSource.getRepository(User);
+      const user = await userRepository.save({
         email: 'test@example.com',
         username: 'testuser',
         password: 'password123',
-      };
+        isVerified: false
+      });
 
-      const createdUser = await controller.create(createUserDto);
-      const result = await controller.verifyEmail(String(createdUser.id));
+      // 초기 상태 확인
+      const userBeforeVerify = await userRepository.findOne({
+        where: { id: user.id }
+      });
+      expect(userBeforeVerify).toBeDefined();
+      expect(userBeforeVerify?.isVerified).toBe(false);
 
+      // 이메일 인증 실행
+      const result = await controller.verifyEmail(String(user.id));
+
+      // 결과 확인
+      expect(result).toBeDefined();
+      expect(result.isVerified).toBe(true);
+
+      // DB에 실제로 반영되었는지 확인
+      const verifiedUser = await userRepository.findOne({
+        where: { id: user.id }
+      });
+      expect(verifiedUser).toBeDefined();
+      expect(verifiedUser?.isVerified).toBe(true);
+    });
+
+    it('should handle already verified user', async () => {
+      // 이미 인증된 사용자 생성
+      const userRepository = dataSource.getRepository(User);
+      const user = await userRepository.save({
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password123',
+        isVerified: true
+      });
+
+      // 이메일 인증 실행
+      const result = await controller.verifyEmail(String(user.id));
+
+      // 결과 확인
       expect(result).toBeDefined();
       expect(result.isVerified).toBe(true);
     });

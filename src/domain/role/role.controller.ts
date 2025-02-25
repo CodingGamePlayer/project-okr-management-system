@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -40,6 +40,9 @@ export class RoleController {
   @ApiResponse({ status: 200, description: '역할 정보 수정 성공', type: UpdateRoleDto })
   @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    if (updateRoleDto.name !== undefined && updateRoleDto.name.trim() === '') {
+      throw new BadRequestException('Role name cannot be empty');
+    }
     return this.roleService.update(+id, updateRoleDto);
   }
 

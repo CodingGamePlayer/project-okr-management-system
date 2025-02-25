@@ -85,9 +85,6 @@ export class UserService {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
     }
 
-    if (!user.roles) {
-      user.roles = [];
-    }
     user.roles.push(role);
 
     return this.userRepository.save(user);
