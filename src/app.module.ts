@@ -4,15 +4,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ApplicationModule } from './application/application.module';
 import { Entities } from './common/entities';
-import { env } from './common/env/env';
 import { DomainModule } from './domain/domain.module';
+import { typeOrmConfig } from './common/env/typeorm.config';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      ...env.database,
+      ...typeOrmConfig,
       entities: Entities,
-      synchronize: true,
     }),
     DomainModule,
     ApplicationModule,
