@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { ApplicationModule } from './application/application.module';
 import { Entities } from './common/entities';
 import { env } from './common/env/env';
-import { DomainModule } from './domain/domin.module';
+import { DomainModule } from './domain/domain.module';
 
 @Module({
   imports: [
