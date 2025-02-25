@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { OKRService } from './okr.service';
 import { OKR, OKRKeyResult, OKRAssignment } from '../../common/entities';
@@ -8,6 +8,17 @@ import { CreateKeyResultDto } from './dto/create-key-result.dto';
 import { UpdateKeyResultDto } from './dto/update-key-result.dto';
 import { CreateOKRAssignmentDto } from './dto/create-okr-assignment.dto';
 import { UpdateOKRAssignmentRoleDto } from './dto/update-okr-assignment-role.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Comment } from '../../common/entities/Comment.entity';
+import { ParseIntPipe } from '@nestjs/common';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    id: number;
+  };
+}
 
 @ApiTags('OKR')
 @Controller('okr')
@@ -144,5 +155,68 @@ export class OKRController {
     @Body() updateRoleDto: UpdateOKRAssignmentRoleDto,
   ): Promise<OKRAssignment> {
     return this.okrService.updateMemberRole(+okrId, +userId, updateRoleDto.role);
+  }
+
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'OKR에 댓글 작성' })
+  @ApiResponse({
+    status: 201,
+    description: '댓글이 성공적으로 작성되었습니다.',
+    type: Comment,
+  })
+  async createComment(
+    @Param('id', ParseIntPipe) okrId: number,
+    @Body() createCommentDto: CreateCommentDto,
+    @Req() req: RequestWithUser,
+  ): Promise<Comment> {
+    return this.okrService.createComment(okrId, req.user.id, createCommentDto);
+  }
+
+  @Patch('comments/:id')
+  @ApiOperation({ summary: '댓글 수정' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글이 성공적으로 수정되었습니다.',
+    type: Comment,
+  })
+  async updateComment(
+    @Param('id', ParseIntPipe) commentId: number,
+    @Body() updateCommentDto: UpdateCommentDto,
+    @Req() req: RequestWithUser,
+  ): Promise<Comment> {
+    return this.okrService.updateComment(commentId, req.user.id, updateCommentDto);
+  }
+
+  @Delete('comments/:id')
+  @ApiOperation({ summary: '댓글 삭제' })
+  @ApiResponse({
+    status: 204,
+    description: '댓글이 성공적으로 삭제되었습니다.',
+  })
+  @HttpCode(204)
+  async deleteComment(@Param('id', ParseIntPipe) commentId: number, @Req() req: RequestWithUser): Promise<void> {
+    await this.okrService.deleteComment(commentId, req.user.id);
+  }
+
+  @Get(':id/comments')
+  @ApiOperation({ summary: 'OKR의 모든 댓글 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 목록을 성공적으로 조회했습니다.',
+    type: [Comment],
+  })
+  async getComments(@Param('id', ParseIntPipe) okrId: number): Promise<Comment[]> {
+    return this.okrService.getComments(okrId);
+  }
+
+  @Get('comments/:id/replies')
+  @ApiOperation({ summary: '특정 댓글의 답글 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '답글 목록을 성공적으로 조회했습니다.',
+    type: [Comment],
+  })
+  async getReplies(@Param('id', ParseIntPipe) commentId: number): Promise<Comment[]> {
+    return this.okrService.getReplies(commentId);
   }
 }

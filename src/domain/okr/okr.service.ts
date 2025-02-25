@@ -1,13 +1,16 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OKR, OKRAssignment, OKRKeyResult, User } from '../../common/entities';
+import { OKR, OKRAssignment, OKRKeyResult, User, Comment } from '../../common/entities';
 import { CreateOKRDto } from './dto/create-okr.dto';
 import { UpdateOKRDto } from './dto/update-okr.dto';
 import { CreateKeyResultDto } from './dto/create-key-result.dto';
 import { UpdateKeyResultDto } from './dto/update-key-result.dto';
 import { KeyResultUnit } from './dto/key-result-unit.enum';
 import { CreateOKRAssignmentDto, OKRAssignmentRole } from './dto/create-okr-assignment.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+import { IsNull } from 'typeorm';
 
 @Injectable()
 export class OKRService {
@@ -20,6 +23,8 @@ export class OKRService {
     private readonly okrKeyResultRepository: Repository<OKRKeyResult>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
   ) {}
 
   async create(createOKRDto: CreateOKRDto): Promise<OKR> {
@@ -280,6 +285,89 @@ export class OKRService {
     return this.okrAssignmentRepository.find({
       where: { okr_id: okrId },
       relations: ['user'],
+    });
+  }
+
+  async createComment(okrId: number, userId: number, createCommentDto: CreateCommentDto): Promise<Comment> {
+    const okr = await this.okrRepository.findOne({ where: { id: okrId } });
+    if (!okr) {
+      throw new NotFoundException('OKR를 찾을 수 없습니다.');
+    }
+
+    if (createCommentDto.parent_id) {
+      const parentComment = await this.commentRepository.findOne({
+        where: { id: createCommentDto.parent_id, okr_id: okrId },
+      });
+      if (!parentComment) {
+        throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
+      }
+    }
+
+    const comment = this.commentRepository.create({
+      ...createCommentDto,
+      okr_id: okrId,
+      user_id: userId,
+    });
+
+    return this.commentRepository.save(comment);
+  }
+
+  async updateComment(commentId: number, userId: number, updateCommentDto: UpdateCommentDto): Promise<Comment> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId, user_id: userId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없거나 수정 권한이 없습니다.');
+    }
+
+    await this.commentRepository.update(commentId, updateCommentDto);
+    const updatedComment = await this.commentRepository.findOne({ where: { id: commentId } });
+    if (!updatedComment) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+    return updatedComment;
+  }
+
+  async deleteComment(commentId: number, userId: number): Promise<void> {
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId, user_id: userId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없거나 삭제 권한이 없습니다.');
+    }
+
+    await this.commentRepository.delete(commentId);
+  }
+
+  async getComments(okrId: number): Promise<Comment[]> {
+    // 최상위 댓글만 먼저 조회 (parent_id가 null인 댓글)
+    const comments = await this.commentRepository.find({
+      where: {
+        okr_id: okrId,
+        parent_id: IsNull(),
+      },
+      relations: ['user', 'replies', 'replies.user'],
+      order: {
+        created_at: 'DESC',
+        replies: {
+          created_at: 'ASC',
+        },
+      },
+    });
+
+    return comments;
+  }
+
+  // 특정 댓글의 답글 목록을 조회하는 메서드 추가
+  async getReplies(commentId: number): Promise<Comment[]> {
+    return this.commentRepository.find({
+      where: { parent_id: commentId },
+      relations: ['user'],
+      order: {
+        created_at: 'ASC',
+      },
     });
   }
 }
