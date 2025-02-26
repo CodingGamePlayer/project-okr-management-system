@@ -110,4 +110,43 @@ export class RoleService {
 
     return role.users;
   }
+
+  /**
+   * 역할 이름으로 역할 찾기
+   * @param name 역할 이름
+   */
+  async findByName(name: string): Promise<Role> {
+    const role = await this.roleRepository.findOne({
+      where: { name },
+    });
+
+    if (!role) {
+      throw new NotFoundException(`Role with name '${name}' not found`);
+    }
+
+    return role;
+  }
+
+  /**
+   * 역할 이름으로 역할 찾기 (없으면 null 반환)
+   * @param name 역할 이름
+   */
+  async findByNameOrNull(name: string): Promise<Role | null> {
+    const role = await this.roleRepository.findOne({
+      where: { name },
+    });
+
+    return role;
+  }
+
+  /**
+   * 역할 이름으로 검색 (부분 일치)
+   * @param name 검색할 역할 이름 (부분 문자열)
+   */
+  async searchByName(name: string): Promise<Role[]> {
+    return this.roleRepository
+      .createQueryBuilder('role')
+      .where('role.name LIKE :name', { name: `%${name}%` })
+      .getMany();
+  }
 }

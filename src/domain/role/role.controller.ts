@@ -9,8 +9,9 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RoleService } from './role.service';
@@ -86,5 +87,25 @@ export class RoleController {
   @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
   getUsersByRoleName(@Param('name') name: string) {
     return this.roleService.getUsersByRoleName(name);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: '역할 이름으로 검색', description: '역할 이름으로 역할을 검색합니다 (부분 일치).' })
+  @ApiQuery({ name: 'name', description: '검색할 역할 이름', required: true })
+  @ApiResponse({ status: 200, description: '역할 검색 성공' })
+  searchByName(@Query('name') name: string) {
+    if (!name || name.trim() === '') {
+      throw new BadRequestException('검색어를 입력해주세요');
+    }
+    return this.roleService.searchByName(name);
+  }
+
+  @Get('name/:name')
+  @ApiOperation({ summary: '역할 이름으로 조회', description: '특정 이름의 역할을 조회합니다.' })
+  @ApiParam({ name: 'name', description: '역할 이름' })
+  @ApiResponse({ status: 200, description: '역할 조회 성공' })
+  @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
+  findByName(@Param('name') name: string) {
+    return this.roleService.findByName(name);
   }
 }

@@ -8,5 +8,6 @@ import { Project, User, ProjectAssignment } from 'src/common/entities';
   imports: [TypeOrmModule.forFeature([Project, User, ProjectAssignment])],
   controllers: [ProjectController],
   providers: [ProjectService],
+  exports: [ProjectService],
 })
 export class ProjectModule {}

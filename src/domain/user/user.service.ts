@@ -17,6 +17,7 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    console.log('🚀 ~ UserService ~ create ~ createUserDto:', createUserDto);
     const existingUser = await this.userRepository.findOne({
       where: [{ email: createUserDto.email }, { username: createUserDto.username }],
     });
@@ -88,5 +89,44 @@ export class UserService {
     user.roles.push(role);
 
     return this.userRepository.save(user);
+  }
+
+  async findByEmail(email: string, includePassword: boolean = false): Promise<User | null> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .leftJoinAndSelect('user.roles', 'roles');
+
+    if (includePassword) {
+      queryBuilder.addSelect('user.password');
+    }
+
+    const user = await queryBuilder.getOne();
+
+    return user || null;
+  }
+
+  async validatePassword(user: User, password: string): Promise<boolean> {
+    // 비밀번호 필드가 선택되지 않았다면 다시 조회
+    if (!user.password) {
+      const userWithPassword = await this.userRepository
+        .createQueryBuilder('user')
+        .where('user.id = :id', { id: user.id })
+        .addSelect('user.password')
+        .getOne();
+
+      if (!userWithPassword) {
+        return false;
+      }
+
+      user = userWithPassword;
+    }
+
+    return bcrypt.compare(password, user.password);
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { username } });
+    return user || null;
   }
 }
