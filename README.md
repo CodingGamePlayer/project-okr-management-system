@@ -26,6 +26,32 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Environment Variables
+
+The application uses the following environment variables that should be defined in a `.env` file at the root of the project:
+
+### Database Configuration
+
+```
+DB_USERNAME=admin           # PostgreSQL 사용자 이름
+DB_PASSWORD=admin1234       # PostgreSQL 비밀번호
+DB_NAME=okr_db              # 데이터베이스 이름
+DB_HOST=localhost           # 데이터베이스 호스트
+DB_PORT=5432                # 데이터베이스 포트
+```
+
+### Email Configuration
+
+```
+EMAIL_USER=your-email@gmail.com       # Gmail 계정
+EMAIL_PASSWORD=your-app-password      # Gmail 앱 비밀번호
+EMAIL_HOST=smtp.gmail.com             # SMTP 서버 호스트
+EMAIL_PORT=587                        # SMTP 서버 포트
+EMAIL_FROM=OKR System <your-email@gmail.com>  # 발신자 이름 및 이메일
+```
+
+**참고**: Gmail을 사용하는 경우 2단계 인증을 활성화하고 앱 비밀번호를 생성해야 합니다.
+
 ## Project setup
 
 ```bash
