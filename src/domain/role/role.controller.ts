@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
-import { RoleService } from './role.service';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { RoleService } from './role.service';
 
 @ApiTags('Role')
 @Controller('roles')
@@ -54,5 +65,26 @@ export class RoleController {
   @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
   remove(@Param('id') id: string) {
     return this.roleService.remove(+id);
+  }
+
+  @Get(':id/users')
+  @ApiOperation({ summary: '역할별 사용자 목록 조회', description: '특정 역할을 가진 모든 사용자를 조회합니다.' })
+  @ApiParam({ name: 'id', description: '역할 ID' })
+  @ApiResponse({ status: 200, description: '사용자 목록 조회 성공' })
+  @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
+  getUsersByRole(@Param('id') id: string) {
+    return this.roleService.getUsersByRole(+id);
+  }
+
+  @Get('name/:name/users')
+  @ApiOperation({
+    summary: '역할 이름별 사용자 목록 조회',
+    description: '특정 이름의 역할을 가진 모든 사용자를 조회합니다.',
+  })
+  @ApiParam({ name: 'name', description: '역할 이름' })
+  @ApiResponse({ status: 200, description: '사용자 목록 조회 성공' })
+  @ApiResponse({ status: 404, description: '역할을 찾을 수 없음' })
+  getUsersByRoleName(@Param('name') name: string) {
+    return this.roleService.getUsersByRoleName(name);
   }
 }
