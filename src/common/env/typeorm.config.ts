@@ -16,7 +16,7 @@ const getTypeOrmConfig = (): DataSourceOptions => {
     port: parseInt(process.env.DB_PORT || '5432', 10),
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_DATABASE || 'okr_management',
+    database: process.env.DB_NAME || 'okr_management',
   };
 
   switch (process.env.NODE_ENV) {
