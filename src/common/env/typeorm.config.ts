@@ -37,7 +37,7 @@ const getTypeOrmConfig = (): DataSourceOptions => {
       return {
         ...baseConfig,
         synchronize: true,
-        logging: true,
+        // logging: true,
       };
   }
 };

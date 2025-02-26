@@ -6,6 +6,7 @@ import { ApplicationModule } from './application/application.module';
 import { Entities } from './common/entities';
 import { DomainModule } from './domain/domain.module';
 import { typeOrmConfig } from './common/env/typeorm.config';
+import { V1Module } from './application/v1/v1.module';
 
 @Module({
   imports: [

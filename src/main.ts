@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ApplicationModule } from './application/application.module';
 import { DomainModules } from './domain';
+import { V1Module } from './application/v1/v1.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,7 +35,7 @@ async function bootstrap() {
     .build();
 
   const applicationDocument = SwaggerModule.createDocument(app, applicationConfig, {
-    include: [ApplicationModule],
+    include: [V1Module],
   });
   SwaggerModule.setup('api/application', app, applicationDocument, {
     swaggerOptions: {
